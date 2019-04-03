@@ -3,9 +3,9 @@ import UIKit
 import Charts
 
 struct FindLatLng: Decodable {
-    let message: String
-    let cod: String
-    let count: Int
+    let message: String?
+    let cod: String?
+    let count: Int?
     let list: [List]
 }
 
@@ -78,32 +78,43 @@ class ViewController: UIViewController {
             self.temp = []
             self.name = []
             do {
-                let findLtLn = try JSONDecoder().decode(FindLatLng.self, from: data)
-                for mainArr in findLtLn.list {
-
+                let ff = try JSONDecoder().decode(FindLatLng.self, from: data)
+                for mainArr in ff.list {
                     self.temp.append(mainArr.main.temp!)
                     self.humid.append(Double(mainArr.main.humidity!))
                     self.name.append(mainArr.name!)
                 }
-
+                
             } catch let jsonErr {
                 print("Error serializing json", jsonErr)
             }
         }.resume()
+        print("name ", name)
     }
-    
-    // chart view
-    func setChartValue (_ count : Int, _ temp: [Double], _ name: [String]) {
-        let value_temp = temp.enumerated().map{ (arg) -> ChartDataEntry in
-            let (index, i) = arg
-            return ChartDataEntry(x: Double(index), y: Double(i))
+
+    func setChart(xValues: [String], yValuesLineChart: [Double], yValuesBarChart: [Double]) {
+        chartView.noDataText = "Please provide data for the chart."
+        
+        var yVals1 : [ChartDataEntry] = [ChartDataEntry]()
+        var yVals2 : [BarChartDataEntry] = [BarChartDataEntry]()
+        
+        for i in 0..<xValues.count {
+            yVals1.append(ChartDataEntry(x: Double(i), y: yValuesLineChart[i], data: xValues as AnyObject?))
+            yVals2.append(BarChartDataEntry(x: Double(i), y: yValuesBarChart[i], data: xValues as AnyObject?))
         }
         
-        let set1 = LineChartDataSet(values: value_temp, label: "Temperature")
-        let data = LineChartData(dataSet: set1)
+        let lineChartSet = LineChartDataSet(values: yVals1, label: "Temperature")
+        let barChartSet: BarChartDataSet = BarChartDataSet(values: yVals2, label: "Humidity")
+        let data: CombinedChartData = CombinedChartData()
+        data.barData=BarChartData(dataSets: [barChartSet])
+        if yValuesLineChart.contains(0) == false {
+            data.lineData = LineChartData(dataSets:[lineChartSet] )
+            
+        }
         self.chartView.data = data
+        self.chartView.xAxis.valueFormatter = IndexAxisValueFormatter(values:xValues)
+        self.chartView.xAxis.granularity = 100
     }
-    
     // show alert
     func alert (checkCondition: Int) {
         var msg = ""
@@ -123,7 +134,7 @@ class ViewController: UIViewController {
         if inputText != nil {
             numberCity = inputText
             self.viewDidLoad()
-            self.setChartValue(numberCity, temp, name)
+            self.setChart(xValues: name, yValuesLineChart: temp, yValuesBarChart: humid)
         } else {
             self.alert(checkCondition: 1)
         }
