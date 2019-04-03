@@ -89,7 +89,6 @@ class ViewController: UIViewController {
                 print("Error serializing json", jsonErr)
             }
         }.resume()
-        print("name ", name)
     }
 
     func setChart(xValues: [String], yValuesLineChart: [Double], yValuesBarChart: [Double]) {
@@ -105,15 +104,16 @@ class ViewController: UIViewController {
         
         let lineChartSet = LineChartDataSet(values: yVals1, label: "Temperature")
         let barChartSet: BarChartDataSet = BarChartDataSet(values: yVals2, label: "Humidity")
+        
         let data: CombinedChartData = CombinedChartData()
         data.barData=BarChartData(dataSets: [barChartSet])
         if yValuesLineChart.contains(0) == false {
             data.lineData = LineChartData(dataSets:[lineChartSet] )
-            
         }
+        
         self.chartView.data = data
         self.chartView.xAxis.valueFormatter = IndexAxisValueFormatter(values:xValues)
-        self.chartView.xAxis.granularity = 100
+        self.chartView.xAxis.granularity = 1
     }
     // show alert
     func alert (checkCondition: Int) {
